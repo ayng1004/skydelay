@@ -213,16 +213,15 @@ function openMap() { $("story").classList.add("hidden"); $("tab-map").classList.
 $("tab-story").onclick = openStory;
 $("tab-map").onclick = openMap;
 
-function closeSheets() { $("hud").classList.remove("open"); $("side").classList.remove("open"); }
-function openSheet(which) {
- const open = !$(which).classList.contains("open");
+const SHEETS = [["mb-replay", "hud"], ["mb-list", "listpanel"], ["mb-predict", "side"]];
+function closeSheets() { for (const [b, p] of SHEETS) { $(p).classList.remove("open"); $(b).classList.remove("active"); } }
+function openSheet(btn, panel) {
+ const open = !$(panel).classList.contains("open");
  closeSheets();
- $(which).classList.toggle("open", open);
- $("mb-replay").classList.toggle("active", open && which === "hud");
- $("mb-predict").classList.toggle("active", open && which === "side");
+ $(panel).classList.toggle("open", open);
+ $(btn).classList.toggle("active", open);
 }
-$("mb-replay").onclick = () => openSheet("hud");
-$("mb-predict").onclick = () => openSheet("side");
+for (const [b, p] of SHEETS) $(b).onclick = () => openSheet(b, p);
 $("go-map").onclick = openMap;
 $("go-predict").onclick = () => {
  if (!meta.airlines) return;

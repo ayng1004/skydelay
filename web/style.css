@@ -5,7 +5,7 @@ html, body { height: 100%; font-family: -apple-system, "Segoe UI", Roboto, sans-
 
 #hud, #side { position: absolute; z-index: 5; background: rgba(16,22,34,.82); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; box-shadow: 0 8px 30px rgba(0,0,0,.45); }
 
-#hud { top: 18px; left: 18px; padding: 16px 18px; width: 260px; max-height: calc(100vh - 36px); overflow-y: auto; }
+#hud { top: 18px; left: 18px; padding: 16px 18px; width: 260px; max-height: 56vh; overflow-y: auto; }
 .brand { font-size: 20px; font-weight: 700; letter-spacing: .3px; display: flex; align-items: center; gap: 8px; }
 .dot { width: 10px; height: 10px; border-radius: 50%; background: #38d39f; box-shadow: 0 0 12px #38d39f; }
 .sub { font-size: 12px; color: #93a1b5; margin-top: 3px; }
@@ -27,7 +27,7 @@ html, body { height: 100%; font-family: -apple-system, "Segoe UI", Roboto, sans-
 .sc-row.big { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,.08); font-size: 13px; }
 .sc-row.big b { color: #38d39f; font-size: 15px; }
 @media (max-width: 900px) { #scorepanel.show { display: none; } }
-.flightlist { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.08); }
+#listpanel { position: absolute; left: 18px; bottom: 18px; z-index: 5; width: 260px; padding: 14px 16px; background: rgba(16,22,34,.82); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; box-shadow: 0 8px 30px rgba(0,0,0,.45); }
 .fl-head { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: #93a1b5; margin-bottom: 8px; }
 .fl-head span { color: #6b788c; }
 #fl-body { max-height: 230px; overflow-y: auto; margin-right: -6px; padding-right: 4px; }
@@ -135,11 +135,12 @@ input[type=range] { width: 100%; accent-color: #38d39f; }
 
 @media (max-width: 820px) {
   #mobilebar, #arrivals { display: flex; }
-  #hud, #side {
+  #hud, #side, #listpanel {
     position: fixed; top: auto; left: 0; right: 0; bottom: 56px; width: auto; max-height: 62vh; overflow-y: auto;
     border-radius: 16px 16px 0 0; transform: translateY(150%); transition: transform .3s ease; z-index: 18;
   }
-  #hud.open, #side.open { transform: translateY(0); }
+  #hud.open, #side.open, #listpanel.open { transform: translateY(0); }
+  #listpanel #fl-body { max-height: 46vh; }
   #detail { left: 10px; right: 10px; width: auto; bottom: 64px; z-index: 19; }
   #story { flex-direction: column; padding-top: 58px; }
   .story-nav { width: auto; padding: 12px; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.07); }

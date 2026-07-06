@@ -38,10 +38,11 @@
  <label><input type="checkbox" id="t-airports" checked> Aéroports (clusters)</label>
  </div>
  <div class="note">Les avions rejouent les vrais vols du <b>15 juillet 2024</b> à leur horaire réel. La couleur montre le retard prédit, ou le retard réel si tu bascules, pour comparer les deux.</div>
- <div class="flightlist">
+</div>
+
+<div id="listpanel">
  <div class="fl-head">Vols en cours <span id="fl-count"></span></div>
  <div id="fl-body"></div>
- </div>
 </div>
 
 <div id="scorepanel"><div class="score" id="score"></div></div>
@@ -71,8 +72,9 @@
 
 <div id="arrivals"></div>
 <div id="mobilebar">
-  <button id="mb-replay" class="active">Rejeu du jour</button>
-  <button id="mb-predict">Prédire un vol</button>
+  <button id="mb-replay">Rejeu</button>
+  <button id="mb-list">Vols</button>
+  <button id="mb-predict">Prédire</button>
 </div>
 
 <div id="story" class="hidden">
