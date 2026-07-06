@@ -387,8 +387,8 @@ function pengPile() {
  }, i * 55);
 }
 const mystBtn = $("mystere"), mystTip = $("mystere-tip");
-mystBtn.classList.add("tease"); mystTip.classList.add("show");
-mystBtn.onclick = () => { mystBtn.classList.remove("tease"); mystTip.classList.remove("show"); pengPile(); };
+if (!localStorage.getItem("mystSeen")) { mystBtn.classList.add("tease"); mystTip.classList.add("show"); }
+mystBtn.onclick = () => { localStorage.setItem("mystSeen", "1"); mystBtn.classList.remove("tease"); mystTip.classList.remove("show"); pengPile(); };
 
 const navItems = [...document.querySelectorAll(".nav-item")];
 for (const b of navItems)
