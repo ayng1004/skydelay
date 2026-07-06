@@ -33,7 +33,7 @@ const city = i => cities[i] ? `${cities[i]} (${i})` : i;
 let flights = [], airports = [], meta = {}, mode = "pred", speed = 10;
 let show = { planes: true, airports: true };
 let predRoute = null, paused = false, clockMin = 0, planeSize = 22;
-let lastList = 0, listRows = [], minRisk = 0, lastArrMin = 0;
+let lastList = 0, listRows = [], minRisk = 0, lastArrMin = 0, lastArrTick = 0;
 const riskOf = f => mode === "pred" ? f.risk : f.drisk;
 const visible = f => riskOf(f) >= minRisk;
 const $ = id => document.getElementById(id);
@@ -170,7 +170,8 @@ Promise.all([
  planeSize = Math.max(16, Math.min(64, 8 + (map.getZoom() - 2) * 6));
  $("clock").textContent = hhmm(clockMin);
  overlay.setProps({ layers: layers(clockMin) });
- if (now - lastList > 1000) { lastList = now; renderList(clockMin); renderScore(clockMin); renderArrivals(clockMin); }
+ if (now - lastList > 1000) { lastList = now; renderList(clockMin); renderScore(clockMin); }
+ if (now - lastArrTick > 3000) { lastArrTick = now; renderArrivals(clockMin); }
  requestAnimationFrame(frame);
  })(last);
 });
@@ -286,17 +287,20 @@ function renderScore(now) {
 
 function renderArrivals(now) {
  if (now < lastArrMin) lastArrMin = 0;
- const landed = flights.filter(f => f.dep + f.dur > lastArrMin && f.dep + f.dur <= now).slice(0, 6);
+ const landed = flights.filter(f => f.dep + f.dur > lastArrMin && f.dep + f.dur <= now).slice(0, 2);
  lastArrMin = now;
  const box = $("arrivals");
  for (const f of landed) {
-   const reel = f.delay >= 10 ? "+" + f.delay + " min" : "à l'heure";
+   const p = predMin(f), reel = f.delay >= 10 ? "+" + f.delay + " min" : "à l'heure";
+   const pred = p < 10 ? "à l'heure" : "~" + p + " min";
    const el = document.createElement("div");
    el.className = "arr-card";
-   el.innerHTML = `<div class="a-t">${f.o} vers ${f.d}</div><div class="a-d" style="color:rgb(${realColor(f.delay)})">${alName(f.al).replace(/ \(.*/, "")}, ${reel}</div>`;
+   el.innerHTML = `<div class="a-t">${alName(f.al).replace(/ \(.*/, "")}, ${f.o} vers ${f.d}</div>
+     <div class="a-row"><span>prédit</span><b style="color:rgb(${realColor(p)})">${pred}</b></div>
+     <div class="a-row"><span>réel</span><b style="color:rgb(${realColor(f.delay)})">${reel}</b></div>`;
    box.prepend(el);
  }
- while (box.children.length > 15) box.lastChild.remove();
+ while (box.children.length > 10) box.lastChild.remove();
 }
 $("go").onclick = async () => {
  const dt = new Date($("date-in").value + "T00:00");
