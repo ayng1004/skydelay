@@ -193,9 +193,14 @@ for (const [id, key] of [["t-planes", "planes"], ["t-airports", "airports"]])
 for (const r of document.querySelectorAll("input[name=mode]"))
  r.onchange = e => { mode = e.target.value; $("arr-row").innerHTML = ""; lastArrMin = clockMin; renderScore(clockMin); renderList(clockMin); };
 $("detail-close").onclick = () => $("detail").classList.add("hidden");
+const BELL_ON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>`;
+const BELL_OFF = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.7 21a2 2 0 0 1-3.4 0"/><path d="M18.6 13A17.9 17.9 0 0 1 18 8"/><path d="M6.3 6.3A5.9 5.9 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.3-5"/><line x1="2" y1="2" x2="22" y2="22"/></svg>`;
 $("notif-toggle").onclick = () => {
  notifOn = !notifOn;
- $("notif-toggle").classList.toggle("muted", !notifOn);
+ const b = $("notif-toggle");
+ b.classList.toggle("muted", !notifOn);
+ b.innerHTML = notifOn ? BELL_ON : BELL_OFF;
+ b.title = notifOn ? "Notifications d'atterrissage activées" : "Notifications d'atterrissage coupées";
  $("arrivals").style.display = notifOn ? "" : "none";
  if (!notifOn) $("arr-row").innerHTML = "";
 };

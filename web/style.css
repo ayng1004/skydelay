@@ -153,7 +153,7 @@ input[type=range] { width: 100%; accent-color: #38d39f; }
   .story-main { padding: 24px 20px 40px; }
   .hero h1 { font-size: 34px; }
   .statgrid { grid-template-columns: repeat(2, 1fr); }
-  body.story-open #arrivals, body.story-open #mobilebar { display: none; }
+  body.story-open #arrivals, body.story-open #mobilebar, body.story-open #notif-toggle { display: none; }
 }
 .sec { padding: 34px 0; border-top: 1px solid rgba(255,255,255,.07); }
 .sec:first-of-type { border-top: 0; }
