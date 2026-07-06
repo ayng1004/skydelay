@@ -40,6 +40,15 @@
  <label><input type="checkbox" id="t-planes" checked> Avions</label>
  <label><input type="checkbox" id="t-airports" checked> Aéroports (clusters)</label>
  </div>
+ <div class="airport-legend">
+ <div class="legend-title">Familles d'aéroports</div>
+ <div class="al-row"><span class="al-dot" style="background:#3498db"></span> Grands hubs</div>
+ <div class="al-row"><span class="al-dot" style="background:#2ecc71"></span> Moyens et fiables</div>
+ <div class="al-row"><span class="al-dot" style="background:#f39c12"></span> Petits aéroports</div>
+ <div class="al-row"><span class="al-dot" style="background:#e74c3c"></span> Souvent en retard</div>
+ <div class="al-row"><span class="al-dot al-anom"></span> Atypique (île, montagne)</div>
+ <div class="al-hint">Taille = nombre de vols. Regroupement automatique (clustering non supervisé).</div>
+ </div>
  <div id="scorepanel"><div class="score" id="score"></div></div>
  <div class="note">Les avions rejouent les vrais vols du <b>15 juillet 2024</b> à leur horaire réel. La couleur montre le retard prédit, ou le retard réel si tu bascules, pour comparer les deux.</div>
  <div id="listpanel">
