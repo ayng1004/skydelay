@@ -1,0 +1,4 @@
+modele,AUC,PR_AUC,F1,accuracy,t_train_s
+Dummy (majoritaire),0.5,0.1795,0.0,0.8205,
+Regression logistique,0.5553,0.2094,0.2926,0.5483,10.4
+HistGradientBoosting,0.6494,0.297,0.3185,0.7414,69.0
