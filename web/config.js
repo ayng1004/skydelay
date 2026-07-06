@@ -1,1 +1,1 @@
-window.SKYDELAY_API = "";
+window.SKYDELAY_API = "https://skydelay.onrender.com";
