@@ -46,8 +46,7 @@ html, body { height: 100%; font-family: -apple-system, "Segoe UI", Roboto, sans-
 .chk { display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer; }
 #prev-wrap.hidden { display: none; }
 #prev-wrap output { color: #38d39f; font-weight: 600; }
-.row { display: flex; gap: 12px; }
-.row label { flex: 1; min-width: 0; }
+.row { display: flex; flex-direction: column; gap: 10px; }
 input[type=range] { width: 100%; accent-color: #38d39f; }
 #go { width: 100%; margin-top: 6px; padding: 11px; border: 0; border-radius: 10px; background: linear-gradient(135deg, #38d39f, #2aa9db); color: #052018; font-weight: 700; font-size: 14px; cursor: pointer; }
 #go:hover { filter: brightness(1.08); }
