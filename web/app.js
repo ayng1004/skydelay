@@ -33,7 +33,7 @@ const city = i => cities[i] ? `${cities[i]} (${i})` : i;
 let flights = [], airports = [], meta = {}, mode = "dayof", speed = 10;
 let show = { planes: true, airports: true };
 let predRoute = null, paused = false, clockMin = 0, planeSize = 22, notifOn = true;
-let lastList = 0, listRows = [], minRisk = 0, lastArrMin = 0, lastArrTick = 0;
+let lastList = 0, listRows = [], minRisk = 0, lastArrMin = 0, lastArrTick = 0, selected = null;
 const riskOf = f => mode === "pred" ? f.risk : f.drisk;
 const visible = f => riskOf(f) >= minRisk;
 const $ = id => document.getElementById(id);
@@ -64,21 +64,20 @@ function onHover(info) {
  tip.style.display = "block"; tip.style.left = info.x + 14 + "px"; tip.style.top = info.y + 14 + "px";
 }
 
-function showDetail(o) {
- const b = $("detail-body");
+function detailHTML(o) {
  if (o.iata) {
- b.innerHTML = `<h3>Aéroport ${o.iata}</h3><div class="d-sub">${o.name || ""}</div>
+ return `<h3>Aéroport ${o.iata}</h3><div class="d-sub">${o.name || ""}</div>
  <div class="d-big" style="color:rgb(${riskColor(o.delay_rate)})">${(o.delay_rate * 100).toFixed(0)}%</div>
  <div class="d-sub">de vols en retard (historique 2024)</div>
  <div class="d-row"><span>Vols dans l'année</span><b>${o.n_flights.toLocaleString()}</b></div>
  <div class="d-row"><span>Retard moyen</span><b>${o.avg_delay?.toFixed(0)} min</b></div>
  <div class="d-row"><span>Profil (cluster)</span><b>${o.cluster}${o.anomalie ? " (atypique)" : ""}</b></div>`;
- } else {
+ }
  const fmt = m => m < 10 ? "à l'heure" : `~${m} min`;
  const pct = r => Math.round(r * 100) + "%";
  const cur = predMin(o), curRisk = mode === "dayof" ? o.drisk : o.risk;
  const titre = mode === "dayof" ? "Prévision jour du vol" : "Prévision à la réservation";
- b.innerHTML = `<h3>${alName(o.al)}</h3><div class="d-sub">${city(o.o)} vers ${city(o.d)}</div>
+ return `<h3>${alName(o.al)}</h3><div class="d-sub">${city(o.o)} vers ${city(o.d)}</div>
  <div class="d-sub">départ ${hhmm(o.dep)}, durée ${o.dur} min</div>
  <div class="d-big" style="color:rgb(${realColor(cur)})">${fmt(cur)}</div>
  <div class="d-sub">${titre}, soit ${pct(curRisk)} de risque de dépasser 15 min</div>
@@ -86,11 +85,24 @@ function showDetail(o) {
  <div class="d-row"><span>Le jour du vol</span><b style="color:rgb(${realColor(o.dpdelay)})">${fmt(o.dpdelay)}, ${pct(o.drisk)}</b></div>
  <div class="d-row"><span>Avion précédent</span><b>${o.prev >= 10 ? "+" + o.prev + " min" : "à l'heure"}</b></div>
  <div class="d-row"><span>Retard réel observé</span><b style="color:rgb(${realColor(o.delay)})">${o.delay >= 10 ? "+" + o.delay + " min" : "à l'heure"}</b></div>`;
- if (o.ox !== undefined) { const p = [o.ox, o.oy], q = [o.dx, o.dy]; predRoute = { o: o.o, d: o.d, p, q, path: gcPath(p, q), animated: false, uid: `${o.o}_${o.d}_${o.dep}_${o.al}`, dep: o.dep, dur: o.dur }; }
- }
+}
+
+function selectFlight(o) {
+ if (o.ox === undefined) return;
+ const p = [o.ox, o.oy], q = [o.dx, o.dy];
+ predRoute = { o: o.o, d: o.d, p, q, path: gcPath(p, q), animated: false, uid: `${o.o}_${o.d}_${o.dep}_${o.al}`, dep: o.dep, dur: o.dur };
+ const frac = Math.max(0, Math.min(1, (clockMin - o.dep) / o.dur));
+ const pos = gcInterp(p, q, frac);
+ const mobile = window.innerWidth <= 820;
+ map.easeTo({ center: pos, zoom: Math.max(map.getZoom(), 5), duration: 800, offset: mobile ? [0, -140] : [0, 0] });
+}
+
+function showDetail(o) {
+ selectFlight(o);
+ $("detail-body").innerHTML = detailHTML(o);
  $("detail").classList.remove("hidden");
 }
-const onClick = info => { if (info.object) showDetail(info.object); };
+const onClick = info => { if (!info.object) return; if (info.object.iata) showDetail(info.object); else onListClick(info.object); };
 
 function gcPath(o, q, n = 48) {
  const a = []; let prev = null;
@@ -246,6 +258,7 @@ function openMap() { $("story").classList.add("hidden"); $("tab-map").classList.
 $("tab-story").onclick = openStory;
 $("tab-map").onclick = openMap;
 
+document.body.appendChild($("listpanel"));
 const SHEETS = [["mb-replay", "hud"], ["mb-list", "listpanel"], ["mb-predict", "side"]];
 function closeSheets() { for (const [b, p] of SHEETS) { $(p).classList.remove("open"); $(b).classList.remove("active"); } }
 function openSheet(btn, panel) {
@@ -287,19 +300,63 @@ function facteurVol(f) {
 }
 function renderList(now) {
  listRows = flights.filter(f => now >= f.dep && now <= f.dep + f.dur && visible(f)).sort((a, b) => predMin(b) - predMin(a));
+ if (selected) {
+ const i = listRows.findIndex(f => `${f.o}_${f.d}_${f.dep}_${f.al}` === selected);
+ if (i > 0) listRows.unshift(listRows.splice(i, 1)[0]);
+ }
  $("fl-count").textContent = "(" + listRows.length + ")";
  const rows = listRows.slice(0, 40).map((f, i) => {
  const m = predMin(f);
  const pc = `rgb(${realColor(m)})`, rc = `rgb(${realColor(f.delay)})`;
  const reel = f.delay >= 10 ? "+" + f.delay + " min" : "à l'heure";
  const pred = m < 10 ? "à l'heure" : "+" + m + " min";
- return `<div class="fl-row" data-i="${i}">
+ const sel = `${f.o}_${f.d}_${f.dep}_${f.al}` === selected ? " sel" : "";
+ return `<div class="fl-row${sel}" data-i="${i}">
  <div class="fl-r1"><b>${alName(f.al).replace(/ \(.*/, "")}</b> ${f.o} vers ${f.d} <span class="fl-fac">${facteurVol(f)}</span></div>
  <div class="fl-r2"><span style="color:${pc}">prédit ${pred}</span><span style="color:${rc}">réel ${reel}</span></div>
  </div>`;
  }).join("");
  $("fl-body").innerHTML = rows;
- for (const el of document.querySelectorAll(".fl-row")) el.onclick = () => showDetail(listRows[+el.dataset.i]);
+ for (const el of document.querySelectorAll(".fl-row")) el.onclick = () => onListClick(listRows[+el.dataset.i]);
+ renderPinned();
+}
+
+function renderPinned() {
+ const box = $("fl-pinned");
+ if (!selected) { box.innerHTML = ""; box.classList.remove("show"); return; }
+ const o = flights.find(f => `${f.o}_${f.d}_${f.dep}_${f.al}` === selected);
+ if (!o) { box.innerHTML = ""; box.classList.remove("show"); return; }
+ box.classList.add("show");
+ const frac = Math.max(0, Math.min(1, (clockMin - o.dep) / o.dur));
+ const risk = mode === "dayof" ? o.drisk : o.risk;
+ const pmin = predMin(o);
+ const pred = pmin < 10 ? "à l'heure" : "+" + pmin + " min";
+ const reel = o.delay >= 10 ? "+" + o.delay + " min" : "à l'heure";
+ box.innerHTML = `
+ <div class="pin-head">${alName(o.al).replace(/ \(.*/, "")} · vol ${o.o}${o.d}</div>
+ <div class="pin-body">
+ <div class="pin-left">
+ <svg class="pin-plane" viewBox="0 0 128 128" fill="rgb(${flightColor(o)})" fill-rule="nonzero"><path d="M64 12 C61 12 59 16 59 22 L59 47 L14 74 L14 84 L59 68 L59 96 L46 108 L46 116 L64 110 L82 116 L82 108 L69 96 L69 68 L114 84 L114 74 L69 47 L69 22 C69 16 67 12 64 12 Z"/></svg>
+ <div class="pin-route">
+ <div class="pin-ap">${o.o}</div>
+ <div class="pin-bar"><span style="width:${(frac*100).toFixed(0)}%"></span></div>
+ <div class="pin-ap">${o.d}</div>
+ </div>
+ <div class="pin-city">${city(o.o).replace(/ \(.*/,"")} vers ${city(o.d).replace(/ \(.*/,"")}</div>
+ </div>
+ <div class="pin-right">
+ <div class="pin-stat"><span>Risque prédit</span><b style="color:rgb(${riskColor(risk)})">${(risk*100).toFixed(0)}%</b></div>
+ <div class="pin-stat"><span>Retard prédit</span><b style="color:rgb(${realColor(pmin)})">${pred}</b></div>
+ <div class="pin-stat"><span>Arrivée réelle</span><b style="color:rgb(${realColor(o.delay)})">${reel}</b></div>
+ </div>
+ </div>`;
+}
+function onListClick(o) {
+ const uid = `${o.o}_${o.d}_${o.dep}_${o.al}`;
+ if (selected === uid) { selected = null; predRoute = null; renderPinned(); return; }
+ selected = uid;
+ selectFlight(o);
+ renderPinned();
 }
 
 function renderScore(now) {
