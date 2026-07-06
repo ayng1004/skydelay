@@ -30,7 +30,7 @@ const alName = c => AIRLINES[c] ? `${AIRLINES[c]} (${c})` : c;
 let cities = {};
 const city = i => cities[i] ? `${cities[i]} (${i})` : i;
 
-let flights = [], airports = [], meta = {}, mode = "pred", speed = 10;
+let flights = [], airports = [], meta = {}, mode = "dayof", speed = 10;
 let show = { planes: true, airports: true };
 let predRoute = null, paused = false, clockMin = 0, planeSize = 22;
 let lastList = 0, listRows = [], minRisk = 0, lastArrMin = 0, lastArrTick = 0;
@@ -191,7 +191,7 @@ $("minrisk").oninput = e => { minRisk = +e.target.value / 100; $("rmval").textCo
 for (const [id, key] of [["t-planes", "planes"], ["t-airports", "airports"]])
  $(id).onchange = e => show[key] = e.target.checked;
 for (const r of document.querySelectorAll("input[name=mode]"))
- r.onchange = e => { mode = e.target.value; renderScore(clockMin); renderList(clockMin); };
+ r.onchange = e => { mode = e.target.value; $("arrivals").innerHTML = ""; lastArrMin = clockMin; renderScore(clockMin); renderList(clockMin); };
 $("detail-close").onclick = () => $("detail").classList.add("hidden");
 $("dayof-chk").onchange = e => $("prev-wrap").classList.toggle("hidden", !e.target.checked);
 $("prev-in").oninput = e => $("pval").textContent = e.target.value;
