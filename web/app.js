@@ -61,7 +61,12 @@ function onHover(info) {
  tip.innerHTML = o.iata
  ? `<b>${o.iata}</b> ${o.name || ""}<br>${(o.delay_rate * 100).toFixed(0)}% de retards`
  : `<b>${alName(o.al)}</b><br>${city(o.o)} vers ${city(o.d)}<br>prédit ${(o.risk * 100).toFixed(0)}%, réel ${o.real ? "retard " + o.delay + " min" : "à l'heure"}`;
- tip.style.display = "block"; tip.style.left = info.x + 14 + "px"; tip.style.top = info.y + 14 + "px";
+ tip.style.display = "block";
+ const tw = tip.offsetWidth, th = tip.offsetHeight;
+ let x = info.x + 12, y = info.y + 12;
+ if (x + tw > window.innerWidth - 8) x = info.x - tw - 12;
+ if (y + th > window.innerHeight - 8) y = info.y - th - 12;
+ tip.style.left = x + "px"; tip.style.top = y + "px";
 }
 
 function detailHTML(o) {
