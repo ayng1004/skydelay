@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SkyDelay, trafic aérien et retards prédits</title>
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<link href="style.css" rel="stylesheet">
+</head>
+<body>
+<div id="map"></div>
+
+<div id="tabs">
+ <button id="tab-map" class="active">Carte</button>
+ <button id="tab-story">Le projet</button>
+</div>
+
+<div id="hud">
+ <div class="brand"><span class="dot"></span> SkyDelay</div>
+ <div class="sub">Trafic réel rejoué</div>
+ <label class="ctrl">Journée <select id="day-in"></select></label>
+ <div class="clock-row"><span class="clock" id="clock">00:00</span><button id="playpause">Pause</button></div>
+ <div class="stat" id="stat"></div>
+ <label class="ctrl">Vitesse <input type="range" id="speed" min="2" max="40" value="10"></label>
+ <label class="ctrl">Risque minimum affiché <output id="rmval">0</output>%<input type="range" id="minrisk" min="0" max="90" value="0" step="10"></label>
+ <div class="mode">
+ <div class="legend-title">Couleur des avions</div>
+ <label><input type="radio" name="mode" value="pred" checked> Prédit à la <b>réservation</b></label>
+ <label><input type="radio" name="mode" value="dayof"> Prédit le <b>jour du vol</b></label>
+ <label><input type="radio" name="mode" value="real"> Retard <b>réel</b> observé</label>
+ </div>
+ <div class="legend">
+ <div class="scale"></div>
+ <div class="scale-lbl"><span id="lo">à l'heure</span><span id="hi">gros retard</span></div>
+ </div>
+ <div class="toggles">
+ <label><input type="checkbox" id="t-planes" checked> Avions</label>
+ <label><input type="checkbox" id="t-airports" checked> Aéroports (clusters)</label>
+ </div>
+ <div class="note">Les avions rejouent les vrais vols du <b>15 juillet 2024</b> à leur horaire réel. La couleur montre le retard prédit, ou le retard réel si tu bascules, pour comparer les deux.</div>
+ <div class="flightlist">
+ <div class="fl-head">Vols en cours <span id="fl-count"></span></div>
+ <div id="fl-body"></div>
+ </div>
+</div>
+
+<div id="scorepanel"><div class="score" id="score"></div></div>
+
+<div id="side">
+ <h2>Prédire un vol</h2>
+ <p class="hint">Choisis un vol, le modèle estime son risque d'arriver avec plus de 15 min de retard.</p>
+ <label>Compagnie <select id="airline"></select></label>
+ <label>Aéroport de départ <select id="origin"></select></label>
+ <label>Aéroport d'arrivée <select id="dest"></select></label>
+ <div class="row">
+ <label>Date du vol <input type="date" id="date-in" value="2024-07-19"></label>
+ <label>Heure de départ <input type="time" id="time-in" value="08:00"></label>
+ </div>
+ <label class="chk"><input type="checkbox" id="dayof-chk"> Je suis le jour du vol (j'ai des infos sur l'avion)</label>
+ <label id="prev-wrap" class="hidden">Retard de l'avion précédent <output id="pval">0</output> min<input type="range" id="prev-in" min="0" max="180" value="0" step="5"></label>
+ <button id="go">Prédire ce vol</button>
+ <div id="result"></div>
+</div>
+
+<div id="detail" class="hidden">
+ <button id="detail-close">×</button>
+ <div id="detail-body"></div>
+</div>
+
+<div id="tooltip"></div>
+
+<div id="story" class="hidden">
+ <nav class="story-nav">
+ <div class="story-brand"><span class="dot"></span> SkyDelay</div>
+ <div class="story-tag">L'histoire du projet</div>
+ <button class="nav-item active" data-ch="intro">1. Le projet</button>
+ <button class="nav-item" data-ch="data">2. Les données</button>
+ <button class="nav-item" data-ch="leak">3. La fuite de données</button>
+ <button class="nav-item" data-ch="storage">4. Le stockage</button>
+ <button class="nav-item" data-ch="eda">5. Ce qu'on a vu</button>
+ <button class="nav-item" data-ch="model">6. Le modèle</button>
+ <button class="nav-item" data-ch="further">7. Aller plus loin</button>
+ <button class="nav-item" data-ch="unsup">8. Sans supervision</button>
+ <button class="nav-item" data-ch="mapc">9. La carte</button>
+ <button class="nav-item" data-ch="sources">10. Sources</button>
+ </nav>
+
+ <div class="story-main">
+ <section class="chapter active" id="ch-intro">
+ <div class="hero">
+ <h1>SkyDelay</h1>
+ <p>Estimer le risque de retard d'un vol avant le décollage, et le voir voler sur une carte.</p>
+ </div>
+ <div class="label">Le but</div>
+ <h2>Savoir si un vol risque d'être en retard</h2>
+ <p>Aux États-Unis, à peu près un vol sur cinq arrive avec plus de 15 minutes de retard. On voulait estimer ce risque au moment de réserver, en n'utilisant que ce qu'on connaît avant le départ, comme la compagnie, les deux aéroports, l'horaire et la météo du jour.</p>
+ <p>Notre première idée était l'empreinte carbone, mais on l'a écartée : elle se calcule par une formule, un modèle n'apporterait rien. Le retard, lui, est vraiment incertain, c'est donc là que la prédiction a un intérêt.</p>
+ </section>
+
+ <section class="chapter" id="ch-data">
+ <div class="label">Les données</div>
+ <h2><span id="counter">0</span> vols réels de 2024</h2>
+ <p>Les données viennent du Bureau of Transportation Statistics américain, qui publie tous les vols intérieurs, mois par mois. Le fichier brut fait plusieurs Go et 110 colonnes. On l'a téléchargé et nettoyé automatiquement pour ne garder que l'utile.</p>
+ <div class="statgrid">
+ <div class="statcard"><b>7 M</b><span>vols en 2024</span></div>
+ <div class="statcard"><b>110</b><span>colonnes brutes</span></div>
+ <div class="statcard"><b>12</b><span>mois</span></div>
+ <div class="statcard"><b>SQL</b><span>DuckDB</span></div>
+ </div>
+ <p class="src">Source des vols : <a href="https://www.transtats.bts.gov/" target="_blank">Bureau of Transportation Statistics</a></p>
+ </section>
+
+ <section class="chapter" id="ch-leak">
+ <div class="label">Le piège qu'on a évité</div>
+ <h2>Ne pas tricher sans le vouloir</h2>
+ <p>Le retard au départ est presque parfaitement corrélé au retard à l'arrivée (0,97). Le problème, c'est qu'au moment de réserver on ne le connaît pas encore. S'en servir aurait donné un modèle qui triche. On a donc écarté toutes les informations qu'on ne possède qu'après le décollage.</p>
+ <p class="src">À lire : <a href="https://scikit-learn.org/stable/common_pitfalls.html" target="_blank">scikit-learn, les pièges classiques (data leakage)</a></p>
+ </section>
+
+ <section class="chapter" id="ch-storage">
+ <div class="label">Le stockage</div>
+ <h2>Pourquoi une base SQL (DuckDB)</h2>
+ <p>Les données sont très régulières et on fait surtout des agrégations sur des millions de lignes. Une base SQL en colonnes est le bon outil. DuckDB charge les 7 millions de vols en une douzaine de secondes, sans serveur à installer. Une base NoSQL n'aurait rien apporté ici, on n'a ni documents ni schéma changeant.</p>
+ </section>
+
+ <section class="chapter" id="ch-eda">
+ <div class="label">Ce qu'on a observé</div>
+ <h2>Le retard suit un rythme</h2>
+ <p>Le matin, la plupart des vols partent à l'heure. Puis les retards s'accumulent tout au long de la journée, en passant d'environ 9 % à 5h du matin à 30 % vers 19h.</p>
+ <div class="bars" id="hourbars"></div>
+ <div class="axis"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span></div>
+ <p>Et toutes les compagnies ne se valent pas.</p>
+ <div class="pills">Les moins ponctuelles <span class="pill bad">F9 29%</span><span class="pill bad">AA 26%</span><span class="pill bad">B6 26%</span></div>
+ <div class="pills">Les plus fiables <span class="pill good">YX 14%</span><span class="pill good">HA 16%</span><span class="pill good">9E 16%</span></div>
+ <div class="quiz">
+ <p>Petite question, on part avec le plus de risque plutôt…</p>
+ <button data-a="0">tôt le matin</button><button data-a="0">le midi</button><button data-a="1">en soirée</button>
+ <div class="rev" id="quiz-rev"></div>
+ </div>
+ </section>
+
+ <section class="chapter" id="ch-model">
+ <div class="label">Le modèle</div>
+ <h2>Un gradient boosting, comparé à deux autres</h2>
+ <p>On a comparé trois approches. Le gradient boosting l'emporte. On regarde surtout l'AUC, car l'accuracy est trompeuse quand 80 % des vols sont déjà à l'heure.</p>
+ <table class="compare" id="modeltable"></table>
+ <p>Pour gagner en précision, on a aussi ajouté la météo réelle de chaque aéroport ce jour là, qui est le principal facteur de retard.</p>
+ </section>
+
+ <section class="chapter" id="ch-further">
+ <div class="label">Aller plus loin</div>
+ <h2>Deux moments, deux précisions</h2>
+ <p>En regardant comment font les vrais services comme Google Flights ou FlightAware, on a compris qu'ils ne prédisent pas à la réservation mais quelques heures avant le vol, avec les données du jour. Le principal facteur de gros retard est l'effet domino : l'avion arrive déjà en retard de son vol précédent.</p>
+ <p>On a ajouté trois informations connues avant le départ et calculées sur nos propres données : le retard de l'avion précédent (via le numéro d'appareil), la congestion et le temps d'escale, et l'état du réseau (à quel point l'aéroport est déjà saturé dans les deux heures précédentes). Résultat, la précision passe de 0,65 à <b>0,80</b> d'AUC, au niveau des outils commerciaux. Sur la carte, tu peux comparer les deux prédictions et le réel côte à côte.</p>
+ <p class="src">Références : <a href="https://www.flightaware.com/commercial/foresight/" target="_blank">FlightAware Foresight</a>, Google Flights.</p>
+ </section>
+
+ <section class="chapter" id="ch-unsup">
+ <div class="label">Sans supervision</div>
+ <h2>Des familles d'aéroports</h2>
+ <p>Sans étiquettes, un clustering regroupe les aéroports par profil, des petits aéroports fiables aux gros hubs saturés. Une détection d'anomalies repère les cas particuliers, comme les aéroports d'îles ou de montagne. Ces groupes servent à colorer les points de la carte.</p>
+ </section>
+
+ <section class="chapter" id="ch-mapc">
+ <div class="label">La carte</div>
+ <h2>Voir une vraie journée rejouée</h2>
+ <p>On rejoue une vraie journée de 2024. Chaque avion vole à son horaire réel et prend la couleur de son retard prédit. On peut basculer sur le retard réellement observé pour comparer. Un clic sur un avion épingle sa fiche.</p>
+ <button class="story-btn" id="go-map">Ouvrir la carte</button>
+ <button class="story-btn ghost" id="go-predict">Prédire un vol au hasard</button>
+ </section>
+
+ <section class="chapter" id="ch-sources">
+ <div class="label">Sources et outils</div>
+ <h2>Références</h2>
+ <p class="src">
+ Vols : <a href="https://www.transtats.bts.gov/" target="_blank">US BTS On-Time Performance</a><br>
+ Aéroports : <a href="https://openflights.org/data.html" target="_blank">OpenFlights</a><br>
+ Météo : <a href="https://meteostat.net/" target="_blank">Meteostat</a><br>
+ Modèle : <a href="https://scikit-learn.org/stable/modules/ensemble.html" target="_blank">scikit-learn, gradient boosting</a><br>
+ Carte : <a href="https://deck.gl/" target="_blank">deck.gl</a> et <a href="https://maplibre.org/" target="_blank">MapLibre</a>
+ </p>
+ </section>
+ </div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/deck.gl@9.0.38/dist.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
