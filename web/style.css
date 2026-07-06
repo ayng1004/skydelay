@@ -123,7 +123,8 @@ input[type=range] { width: 100%; accent-color: #38d39f; }
 .statcard b { display: block; font-size: 24px; color: #38d39f; font-weight: 800; }
 .statcard span { font-size: 11px; color: #93a1b5; }
 #mobilebar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 16; gap: 8px; padding: 8px; background: rgba(10,14,23,.92); backdrop-filter: blur(12px); border-top: 1px solid rgba(255,255,255,.1); }
-#mobilebar button { flex: 1; padding: 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 10px; background: rgba(255,255,255,.05); color: #cdd6e2; font-size: 14px; font-weight: 600; cursor: pointer; }
+#mobilebar button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 11px; border: 1px solid rgba(255,255,255,.12); border-radius: 10px; background: rgba(255,255,255,.05); color: #cdd6e2; font-size: 14px; font-weight: 600; cursor: pointer; }
+#mobilebar svg { width: 16px; height: 16px; flex-shrink: 0; }
 #mobilebar button.active { background: linear-gradient(135deg, #38d39f, #2aa9db); color: #052018; border-color: transparent; }
 
 #arrivals { display: none; position: fixed; top: 58px; left: 0; right: 0; z-index: 15; gap: 8px; padding: 8px 10px; overflow-x: auto; scrollbar-width: none; }
@@ -137,7 +138,7 @@ input[type=range] { width: 100%; accent-color: #38d39f; }
   #mobilebar, #arrivals { display: flex; }
   #hud, #side, #listpanel {
     position: fixed; top: auto; left: 0; right: 0; bottom: 56px; width: auto; max-height: 62vh; overflow-y: auto;
-    border-radius: 16px 16px 0 0; transform: translateY(150%); transition: transform .3s ease; z-index: 18;
+    border-radius: 16px 16px 0 0; transform: translateY(100vh); transition: transform .3s ease; z-index: 18;
   }
   #hud.open, #side.open, #listpanel.open { transform: translateY(0); }
   #listpanel #fl-body { max-height: 46vh; }
