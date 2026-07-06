@@ -128,7 +128,7 @@ input[type=range] { width: 100%; accent-color: #38d39f; }
 @keyframes pengfall { to { transform: translateY(115vh) rotate(var(--spin, 360deg)); } }
 .peng-pile { position: fixed; z-index: 8000; pointer-events: none; animation: pengdrop var(--dur, 2s) cubic-bezier(.33,0,.7,.4) forwards; }
 @keyframes pengdrop { from { transform: translateY(0) rotate(0deg); } to { transform: translateY(var(--fall)) rotate(var(--spin, 360deg)); } }
-#mystere { position: fixed; bottom: 34px; right: 18px; z-index: 9500; width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,.1); background: rgba(16,22,34,.82); backdrop-filter: blur(12px); color: #6b788c; font-size: 20px; font-weight: 700; cursor: pointer; transition: color .2s, transform .2s; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+#mystere { position: fixed; bottom: 40px; right: 18px; z-index: 9500; width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,.1); background: rgba(16,22,34,.82); backdrop-filter: blur(12px); color: #6b788c; font-size: 20px; font-weight: 700; cursor: pointer; transition: color .2s, transform .2s; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
 #mystere:hover { color: #38d39f; transform: scale(1.08) rotate(8deg); }
 #mystere:active { transform: scale(.94); }
 #mystere.tease { color: #38d39f; border-color: rgba(56,211,159,.6); animation: mystpulse 1s ease-in-out infinite; }
