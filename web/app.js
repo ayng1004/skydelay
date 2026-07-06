@@ -324,18 +324,6 @@ for (const b of document.querySelectorAll(".quiz button"))
  const ok = b.dataset.a === "1";
  $("quiz-rev").innerHTML = ok ? "Exact, en soirée le risque grimpe à ~30 %. " + PENGUIN : "Raté, c'est en soirée que ça coince le plus.";
  };
-const pengImg = $("peng-sit") && $("peng-sit").querySelector("img");
-if (pengImg) {
- const nav = document.querySelector(".story-nav");
- nav.addEventListener("mousemove", e => {
- const r = pengImg.getBoundingClientRect();
- const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
- let deg = Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI + 90;
- deg = Math.max(-38, Math.min(38, deg));
- pengImg.style.transform = `rotate(${deg}deg)`;
- });
- nav.addEventListener("mouseleave", () => pengImg.style.transform = "rotate(0deg)");
-}
 let eggClicks = 0;
 document.querySelector(".story-brand").onclick = () => {
  if (++eggClicks < 3) return;

@@ -122,7 +122,7 @@ input[type=range] { width: 100%; accent-color: #38d39f; }
 
 #story { position: fixed; inset: 0; z-index: 20; display: flex; padding-top: 66px; background: radial-gradient(1200px 600px at 70% -10%, #16233b, #0a0e17 60%); }
 #story.hidden { display: none; }
-.story-nav { width: 290px; flex-shrink: 0; padding: 24px 18px; overflow-y: auto; border-right: 1px solid rgba(255,255,255,.07); display: flex; flex-direction: column; scrollbar-width: none; }
+.story-nav { width: 290px; flex-shrink: 0; padding: 24px 18px; overflow-y: auto; border-right: 1px solid rgba(255,255,255,.07); scrollbar-width: none; }
 .story-nav::-webkit-scrollbar { display: none; }
 .peng-drop { position: fixed; top: -150px; z-index: 9000; pointer-events: none; animation: pengfall linear forwards; }
 @keyframes pengfall { to { transform: translateY(115vh) rotate(var(--spin, 360deg)); } }
@@ -156,8 +156,6 @@ input[type=range] { width: 100%; accent-color: #38d39f; }
 .peng { width: 26px; height: auto; vertical-align: middle; display: inline-block; }
 .rev .peng { animation: wobble 1s ease-in-out infinite; transform-origin: center bottom; }
 @keyframes wobble { 0%,100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
-#peng-sit { margin-top: auto; padding-top: 24px; display: flex; justify-content: center; }
-#peng-sit img { width: 128px; height: 128px; transition: transform .18s ease-out; will-change: transform; }
 .egg-sign { margin-top: 30px; font-size: 12px; color: #6b788c; display: flex; align-items: center; gap: 8px; }
 .egg-sign img { width: 30px; height: 30px; }
 .egg-walk { position: fixed; bottom: 70px; left: -60px; z-index: 40; animation: waddle 6s linear forwards; }
