@@ -30,7 +30,7 @@ const alName = c => AIRLINES[c] ? `${AIRLINES[c]} (${c})` : c;
 let cities = {};
 const city = i => cities[i] ? `${cities[i]} (${i})` : i;
 
-let flights = [], airports = [], meta = {}, mode = "dayof", speed = 10;
+let flights = [], airports = [], meta = {}, mode = "dayof", speed = 5;
 let show = { planes: true, airports: true };
 let predRoute = null, paused = false, clockMin = 0, planeSize = 22, notifOn = true;
 let lastList = 0, listRows = [], minRisk = 0, lastArrMin = 0, lastArrTick = 0, selected = null, follow = false;

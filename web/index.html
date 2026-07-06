@@ -4,6 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SkyDelay, trafic aérien et retards prédits</title>
+<meta name="description" content="Estimer le risque de retard d'un vol avant le décollage, et le voir voler sur une carte. Projet data science : 7 millions de vols, machine learning.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://skydelay-henna.vercel.app/">
+<meta property="og:title" content="SkyDelay, trafic aérien et retards prédits">
+<meta property="og:description" content="Estimer le risque de retard d'un vol avant le décollage, et le voir voler sur une carte.">
+<meta property="og:image" content="https://skydelay-henna.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SkyDelay, trafic aérien et retards prédits">
+<meta name="twitter:description" content="Estimer le risque de retard d'un vol avant le décollage, et le voir voler sur une carte.">
+<meta name="twitter:image" content="https://skydelay-henna.vercel.app/og.png">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -24,7 +36,7 @@
  <label class="ctrl">Journée <select id="day-in"></select></label>
  <div class="clock-row"><span class="clock" id="clock">00:00</span><button id="playpause">Pause</button></div>
  <div class="stat" id="stat"></div>
- <label class="ctrl">Vitesse <input type="range" id="speed" min="2" max="40" value="10"></label>
+ <label class="ctrl">Vitesse <input type="range" id="speed" min="2" max="40" value="5"></label>
  <label class="ctrl">Risque minimum affiché <output id="rmval">0</output>%<input type="range" id="minrisk" min="0" max="90" value="0" step="10"></label>
  <div class="mode">
  <div class="legend-title">Couleur des avions</div>
@@ -256,6 +268,6 @@
 <script src="config.js"></script>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://unpkg.com/deck.gl@9.0.38/dist.min.js"></script>
-<script src="app.js?v=13"></script>
+<script src="app.js?v=14"></script>
 </body>
 </html>
