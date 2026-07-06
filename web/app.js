@@ -33,7 +33,7 @@ const city = i => cities[i] ? `${cities[i]} (${i})` : i;
 let flights = [], airports = [], meta = {}, mode = "dayof", speed = 10;
 let show = { planes: true, airports: true };
 let predRoute = null, paused = false, clockMin = 0, planeSize = 22, notifOn = true;
-let lastList = 0, listRows = [], minRisk = 0, lastArrMin = 0, lastArrTick = 0, selected = null;
+let lastList = 0, listRows = [], minRisk = 0, lastArrMin = 0, lastArrTick = 0, selected = null, follow = false;
 const riskOf = f => mode === "pred" ? f.risk : f.drisk;
 const visible = f => riskOf(f) >= minRisk;
 const $ = id => document.getElementById(id);
@@ -184,6 +184,7 @@ function layers(dayMin) {
 const map = new maplibregl.Map({ container: "map", style: MAP_STYLE, center: [-96, 38], zoom: 3.7 });
 const overlay = new deck.MapboxOverlay({ layers: [], pickingRadius: 10 });
 map.addControl(overlay);
+map.on("dragstart", () => { follow = false; });
 
 function fill(sel, arr, def, label) { sel.innerHTML = arr.map(v => `<option value="${v}" ${v === def ? "selected" : ""}>${label(v)}</option>`).join(""); }
 
@@ -203,6 +204,13 @@ Promise.all([
  if (!paused) clockMin = (clockMin + dt * speed) % 1440;
  planeSize = Math.max(16, Math.min(64, 8 + (map.getZoom() - 2) * 6));
  $("clock").textContent = hhmm(clockMin);
+ if (follow && selected) {
+ const o = flights.find(f => `${f.o}_${f.d}_${f.dep}_${f.al}` === selected);
+ if (o && clockMin >= o.dep && clockMin <= o.dep + o.dur) {
+ const frac = (clockMin - o.dep) / o.dur;
+ map.setCenter(gcInterp([o.ox, o.oy], [o.dx, o.dy], frac));
+ } else follow = false;
+ }
  overlay.setProps({ layers: layers(clockMin) });
  if (now - lastList > 1000) { lastList = now; renderList(clockMin); renderScore(clockMin); }
  if (notifOn && now - lastArrTick > 1800) { lastArrTick = now; renderArrivals(clockMin); }
@@ -353,8 +361,9 @@ function renderPinned() {
 }
 function onListClick(o) {
  const uid = `${o.o}_${o.d}_${o.dep}_${o.al}`;
- if (selected === uid) { selected = null; predRoute = null; renderPinned(); return; }
+ if (selected === uid) { selected = null; predRoute = null; follow = false; renderPinned(); return; }
  selected = uid;
+ follow = true;
  selectFlight(o);
  renderPinned();
 }
