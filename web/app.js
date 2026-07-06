@@ -319,13 +319,8 @@ $("ch-select").onchange = e => navItems.find(b => b.dataset.ch === e.target.valu
 const NIV = { faible: [46, 204, 113], moyen: [241, 196, 15], fort: [231, 76, 60] };
 function clearPred() { predRoute = null; $("result").innerHTML = ""; }
 
-function facteurVol(f) {
- if (f.dep >= 17 * 60) return "soirée";
- if (f.dep <= 8 * 60) return "matin";
- return "journée";
-}
 function renderList(now) {
- listRows = flights.filter(f => now >= f.dep && now <= f.dep + f.dur && visible(f)).sort((a, b) => predMin(b) - predMin(a));
+ listRows = flights.filter(f => now >= f.dep && now <= f.dep + f.dur && visible(f)).sort((a, b) => b.dep - a.dep);
  if (selected) {
  const i = listRows.findIndex(f => `${f.o}_${f.d}_${f.dep}_${f.al}` === selected);
  if (i > 0) listRows.unshift(listRows.splice(i, 1)[0]);
@@ -338,7 +333,7 @@ function renderList(now) {
  const pred = m < 10 ? "à l'heure" : "+" + m + " min";
  const sel = `${f.o}_${f.d}_${f.dep}_${f.al}` === selected ? " sel" : "";
  return `<div class="fl-row${sel}" data-i="${i}">
- <div class="fl-r1"><b>${alName(f.al).replace(/ \(.*/, "")}</b> ${f.o} vers ${f.d} <span class="fl-fac">${facteurVol(f)}</span></div>
+ <div class="fl-r1"><b>${alName(f.al).replace(/ \(.*/, "")}</b> ${f.o} vers ${f.d} <span class="fl-fac">${hhmm(f.dep)}</span></div>
  <div class="fl-r2"><span style="color:${pc}">prédit ${pred}</span><span style="color:${rc}">réel ${reel}</span></div>
  </div>`;
  }).join("");
