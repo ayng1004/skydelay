@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SkyDelay, trafic aérien et retards prédits</title>
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="style.css" rel="stylesheet">
+<link href="style.css?v=2" rel="stylesheet">
 </head>
 <body>
 <div id="map"></div>
@@ -69,10 +69,17 @@
 
 <div id="tooltip"></div>
 
+<div id="arrivals"></div>
+<div id="mobilebar">
+  <button id="mb-replay" class="active">Rejeu du jour</button>
+  <button id="mb-predict">Prédire un vol</button>
+</div>
+
 <div id="story" class="hidden">
  <nav class="story-nav">
  <div class="story-brand"><span class="dot"></span> SkyDelay</div>
  <div class="story-tag">L'histoire du projet</div>
+ <select id="ch-select"></select>
  <button class="nav-item active" data-ch="intro">1. Le projet</button>
  <button class="nav-item" data-ch="data">2. Les données</button>
  <button class="nav-item" data-ch="leak">3. La fuite de données</button>
@@ -186,6 +193,6 @@
 <script src="config.js"></script>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://unpkg.com/deck.gl@9.0.38/dist.min.js"></script>
-<script src="app.js"></script>
+<script src="app.js?v=2"></script>
 </body>
 </html>

@@ -33,7 +33,7 @@ const city = i => cities[i] ? `${cities[i]} (${i})` : i;
 let flights = [], airports = [], meta = {}, mode = "pred", speed = 10;
 let show = { planes: true, airports: true };
 let predRoute = null, paused = false, clockMin = 0, planeSize = 22;
-let lastList = 0, listRows = [], minRisk = 0;
+let lastList = 0, listRows = [], minRisk = 0, lastArrMin = 0;
 const riskOf = f => mode === "pred" ? f.risk : f.drisk;
 const visible = f => riskOf(f) >= minRisk;
 const $ = id => document.getElementById(id);
@@ -170,7 +170,7 @@ Promise.all([
  planeSize = Math.max(16, Math.min(64, 8 + (map.getZoom() - 2) * 6));
  $("clock").textContent = hhmm(clockMin);
  overlay.setProps({ layers: layers(clockMin) });
- if (now - lastList > 1000) { lastList = now; renderList(clockMin); renderScore(clockMin); }
+ if (now - lastList > 1000) { lastList = now; renderList(clockMin); renderScore(clockMin); renderArrivals(clockMin); }
  requestAnimationFrame(frame);
  })(last);
 });
@@ -179,7 +179,7 @@ async function loadDay(date) {
  try {
  const r = await fetch("data/days/" + date + ".json");
  const j = await r.json();
- if (j.flights && j.flights.length) { flights = j.flights; clockMin = 0; paused = false; $("playpause").textContent = "Pause"; }
+ if (j.flights && j.flights.length) { flights = j.flights; clockMin = 0; lastArrMin = 0; $("arrivals").innerHTML = ""; paused = false; $("playpause").textContent = "Pause"; }
  } catch (e) {}
 }
 $("day-in").onchange = e => loadDay(e.target.value);
@@ -200,6 +200,7 @@ const MODELS = [["Référence (toujours à l'heure)", 0.50, false], ["Régressio
 let storyInit = false;
 function openStory() {
  $("story").classList.remove("hidden"); $("tab-story").classList.add("active"); $("tab-map").classList.remove("active");
+ document.body.classList.add("story-open"); closeSheets();
  if (storyInit) return; storyInit = true;
  const mx = Math.max(...HOURS);
  $("hourbars").innerHTML = HOURS.map((v, i) => `<div class="b" style="height:${v / mx * 100}%" data-t="${i}h, ${(v * 100).toFixed(0)}%"></div>`).join("");
@@ -207,9 +208,20 @@ function openStory() {
  let n = 0; const tgt = 7079061, step = tgt / 60;
  (function tick() { n = Math.min(tgt, n + step); $("counter").textContent = Math.floor(n).toLocaleString("fr-FR"); if (n < tgt) requestAnimationFrame(tick); })();
 }
-function openMap() { $("story").classList.add("hidden"); $("tab-map").classList.add("active"); $("tab-story").classList.remove("active"); }
+function openMap() { $("story").classList.add("hidden"); $("tab-map").classList.add("active"); $("tab-story").classList.remove("active"); document.body.classList.remove("story-open"); }
 $("tab-story").onclick = openStory;
 $("tab-map").onclick = openMap;
+
+function closeSheets() { $("hud").classList.remove("open"); $("side").classList.remove("open"); }
+function openSheet(which) {
+ const open = !$(which).classList.contains("open");
+ closeSheets();
+ $(which).classList.toggle("open", open);
+ $("mb-replay").classList.toggle("active", open && which === "hud");
+ $("mb-predict").classList.toggle("active", open && which === "side");
+}
+$("mb-replay").onclick = () => openSheet("hud");
+$("mb-predict").onclick = () => openSheet("side");
 $("go-map").onclick = openMap;
 $("go-predict").onclick = () => {
  if (!meta.airlines) return;
@@ -221,12 +233,16 @@ $("go-predict").onclick = () => {
 for (const b of document.querySelectorAll(".quiz button"))
  b.onclick = () => $("quiz-rev").textContent = b.dataset.a === "1" ? "Exact, en soirée le risque grimpe à ~30 %." : "Raté, c'est en soirée que ça coince le plus.";
 
-for (const b of document.querySelectorAll(".nav-item"))
+const navItems = [...document.querySelectorAll(".nav-item")];
+for (const b of navItems)
  b.onclick = () => {
- document.querySelectorAll(".nav-item").forEach(n => n.classList.toggle("active", n === b));
+ navItems.forEach(n => n.classList.toggle("active", n === b));
  document.querySelectorAll(".chapter").forEach(c => c.classList.toggle("active", c.id === "ch-" + b.dataset.ch));
+ $("ch-select").value = b.dataset.ch;
  document.querySelector(".story-main").scrollTop = 0;
  };
+$("ch-select").innerHTML = navItems.map(b => `<option value="${b.dataset.ch}">${b.textContent}</option>`).join("");
+$("ch-select").onchange = e => navItems.find(b => b.dataset.ch === e.target.value).click();
 
 const NIV = { faible: [46, 204, 113], moyen: [241, 196, 15], fort: [231, 76, 60] };
 function clearPred() { predRoute = null; $("result").innerHTML = ""; }
@@ -255,7 +271,7 @@ function renderList(now) {
 
 function renderScore(now) {
  const done = flights.filter(f => now >= f.dep + f.dur);
- $("scorepanel").style.display = done.length ? "block" : "none";
+ $("scorepanel").classList.toggle("show", done.length > 0);
  if (!done.length) { $("score").innerHTML = ""; return; }
  const predRate = done.reduce((s, f) => s + riskOf(f), 0) / done.length;
  const realRate = done.reduce((s, f) => s + f.real, 0) / done.length;
@@ -266,6 +282,21 @@ function renderScore(now) {
  <div class="sc-row"><span>Risque moyen prédit</span><b>${(predRate * 100).toFixed(0)}%</b></div>
  <div class="sc-row"><span>Retard réel observé</span><b>${(realRate * 100).toFixed(0)}%</b></div>
  <div class="sc-row big"><span>Prévisions justes à 15 min</span><b>${(juste * 100).toFixed(0)}%</b></div>`;
+}
+
+function renderArrivals(now) {
+ if (now < lastArrMin) lastArrMin = 0;
+ const landed = flights.filter(f => f.dep + f.dur > lastArrMin && f.dep + f.dur <= now).slice(0, 6);
+ lastArrMin = now;
+ const box = $("arrivals");
+ for (const f of landed) {
+   const reel = f.delay >= 10 ? "+" + f.delay + " min" : "à l'heure";
+   const el = document.createElement("div");
+   el.className = "arr-card";
+   el.innerHTML = `<div class="a-t">${f.o} vers ${f.d}</div><div class="a-d" style="color:rgb(${realColor(f.delay)})">${alName(f.al).replace(/ \(.*/, "")}, ${reel}</div>`;
+   box.prepend(el);
+ }
+ while (box.children.length > 15) box.lastChild.remove();
 }
 $("go").onclick = async () => {
  const dt = new Date($("date-in").value + "T00:00");
