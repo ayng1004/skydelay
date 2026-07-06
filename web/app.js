@@ -277,8 +277,24 @@ function openStory() {
  const mx = Math.max(...HOURS);
  $("hourbars").innerHTML = HOURS.map((v, i) => `<div class="b" style="height:${v / mx * 100}%" data-t="${i}h, ${(v * 100).toFixed(0)}%"></div>`).join("");
  $("modeltable").innerHTML = "<tr><th>Modèle</th><th>AUC</th></tr>" + MODELS.map(m => `<tr class="${m[2] ? "win" : ""}"><td>${m[0]}</td><td>${m[1].toFixed(2)}</td></tr>`).join("");
+ const corr = [["Avion précédent", 0.33, "#38d39f"], ["État du réseau", 0.27, "#38d39f"], ["Heure de départ", 0.16, "#5A6472"], ["Congestion", 0.04, "#5A6472"]];
+ if ($("corr-chart")) $("corr-chart").innerHTML = corr.map(c => `<div class="cmp-row"><span class="cmp-lbl">${c[0]}</span><div class="cmp-bar"><span style="width:${c[1] / 0.33 * 100}%;background:${c[2]}"></span></div><span class="cmp-val">${c[1].toFixed(2)}</span></div>`).join("");
+ const prog = [["Réservation + météo", 0.65], ["+ effet domino", 0.775], ["+ congestion", 0.79], ["+ état réseau", 0.80]];
+ if ($("prog-chart")) $("prog-chart").innerHTML = prog.map((p, i) => `<div class="cmp-row"><span class="cmp-lbl">${p[0]}</span><div class="cmp-bar"><span style="width:${(p[1] - 0.45) / 0.4 * 100}%;background:${i === prog.length - 1 ? "#38d39f" : "#2aa9db"}"></span></div><span class="cmp-val">${p[1].toFixed(2)}</span></div>`).join("");
  let n = 0; const tgt = 7079061, step = tgt / 60;
  (function tick() { n = Math.min(tgt, n + step); $("counter").textContent = Math.floor(n).toLocaleString("fr-FR"); if (n < tgt) requestAnimationFrame(tick); })();
+ fetch("data/bilan.json").then(r => r.json()).then(b => {
+ const acc = Math.round(100 * (b.matrice.vp + b.matrice.vn) / (b.matrice.vp + b.matrice.vn + b.matrice.fp + b.matrice.fn));
+ $("r-vols").textContent = b.nb_vols.toLocaleString("fr-FR");
+ $("r-jours").textContent = b.nb_journees;
+ $("r-acc").textContent = acc + "%";
+ $("r-min").textContent = b.minutes_justes + "%";
+ $("r-rappel").textContent = b.rappel + "%";
+ $("r-prec").textContent = b.precision + "%";
+ const cmp = [["Google Flights", 89, "#5A6472"], ["SkyDelay (moi)", acc, "#38d39f"], ["FlightAware", 76, "#5A6472"], ["Prévisions publiques", 63, "#5A6472"]];
+ $("cmp-chart").innerHTML = cmp.map(c => `<div class="cmp-row"><span class="cmp-lbl">${c[0]}</span><div class="cmp-bar"><span style="width:${c[1]}%;background:${c[2]}"></span></div><span class="cmp-val">${c[1]}%</span></div>`).join("");
+ $("r-calib").innerHTML = b.calibration.map(c => `<div class="cal-row"><span class="cal-lbl">annoncé ${c.tranche}%</span><div class="cal-bar"><span style="width:${c.reel}%"></span></div><span class="cal-val">${c.reel}% réel</span></div>`).join("");
+ }).catch(() => {});
 }
 function openMap() { $("story").classList.add("hidden"); $("tab-map").classList.add("active"); $("tab-story").classList.remove("active"); document.body.classList.remove("story-open"); }
 $("tab-story").onclick = openStory;
@@ -302,8 +318,60 @@ $("go-predict").onclick = () => {
  $("time-in").value = "18:00";
  openMap(); $("go").click();
 };
+const PENGUIN = `<img src="penguin2.png" class="peng" alt="pingouin">`;
 for (const b of document.querySelectorAll(".quiz button"))
- b.onclick = () => $("quiz-rev").textContent = b.dataset.a === "1" ? "Exact, en soirée le risque grimpe à ~30 %." : "Raté, c'est en soirée que ça coince le plus.";
+ b.onclick = () => {
+ const ok = b.dataset.a === "1";
+ $("quiz-rev").innerHTML = ok ? "Exact, en soirée le risque grimpe à ~30 %. " + PENGUIN : "Raté, c'est en soirée que ça coince le plus.";
+ };
+const pengImg = $("peng-sit") && $("peng-sit").querySelector("img");
+if (pengImg) {
+ const nav = document.querySelector(".story-nav");
+ nav.addEventListener("mousemove", e => {
+ const r = pengImg.getBoundingClientRect();
+ const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+ let deg = Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI + 90;
+ deg = Math.max(-38, Math.min(38, deg));
+ pengImg.style.transform = `rotate(${deg}deg)`;
+ });
+ nav.addEventListener("mouseleave", () => pengImg.style.transform = "rotate(0deg)");
+}
+let eggClicks = 0;
+document.querySelector(".story-brand").onclick = () => {
+ if (++eggClicks < 3) return;
+ eggClicks = 0;
+ const p = document.createElement("div");
+ p.className = "egg-walk"; p.innerHTML = `<img src="penguin2.png" style="width:70px;height:70px">`;
+ document.body.appendChild(p);
+ setTimeout(() => p.remove(), 6000);
+};
+
+let pengRainOn = false;
+function pengRain() {
+ for (let i = 0; i < 40; i++) {
+ const d = document.createElement("img");
+ d.src = "penguin2.png"; d.className = "peng-drop";
+ const s = 40 + Math.random() * 50;
+ d.style.left = Math.random() * 100 + "vw";
+ d.style.width = s + "px";
+ const dur = 2.6 + Math.random() * 2.4;
+ d.style.animationDuration = dur + "s";
+ d.style.animationDelay = Math.random() * 0.4 + "s";
+ d.style.setProperty("--spin", (Math.random() * 720 - 360) + "deg");
+ document.body.appendChild(d);
+ setTimeout(() => d.remove(), (dur + 0.6) * 1000);
+ }
+}
+const mystBtn = $("mystere"), mystTip = $("mystere-tip");
+let mystSeen = false;
+mystBtn.onclick = () => { mystSeen = true; mystBtn.classList.remove("tease"); mystTip.classList.remove("show"); pengRain(); };
+function mystTease() {
+ if (mystSeen || document.body.classList.contains("story-open")) return;
+ mystBtn.classList.add("tease"); mystTip.classList.add("show");
+ setTimeout(() => { mystBtn.classList.remove("tease"); mystTip.classList.remove("show"); }, 3200);
+}
+setTimeout(mystTease, 600);
+setInterval(mystTease, 8000);
 
 const navItems = [...document.querySelectorAll(".nav-item")];
 for (const b of navItems)
@@ -312,6 +380,7 @@ for (const b of navItems)
  document.querySelectorAll(".chapter").forEach(c => c.classList.toggle("active", c.id === "ch-" + b.dataset.ch));
  $("ch-select").value = b.dataset.ch;
  document.querySelector(".story-main").scrollTop = 0;
+ if (b.dataset.ch === "sources") pengRain();
  };
 $("ch-select").innerHTML = navItems.map(b => `<option value="${b.dataset.ch}">${b.textContent}</option>`).join("");
 $("ch-select").onchange = e => navItems.find(b => b.dataset.ch === e.target.value).click();

@@ -1,0 +1,41 @@
+{
+ "nb_vols": 234159,
+ "nb_journees": 12,
+ "taux_reel": 22,
+ "minutes_justes": 71,
+ "precision": 53,
+ "rappel": 69,
+ "matrice": {
+  "vp": 35960,
+  "vn": 150905,
+  "fp": 31274,
+  "fn": 16020
+ },
+ "calibration": [
+  {
+   "tranche": "0-15",
+   "reel": 8,
+   "n": 139725
+  },
+  {
+   "tranche": "15-30",
+   "reel": 21,
+   "n": 46652
+  },
+  {
+   "tranche": "30-50",
+   "reel": 39,
+   "n": 19017
+  },
+  {
+   "tranche": "50-75",
+   "reel": 65,
+   "n": 11285
+  },
+  {
+   "tranche": "75-100",
+   "reel": 94,
+   "n": 17480
+  }
+ ]
+}
