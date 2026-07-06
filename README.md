@@ -50,7 +50,7 @@ Classification supervisée du retard de 15 minutes ou plus, comparée sur un dé
 
 Les scores AUC obtenus : 0,50 pour la référence qui prédit toujours à l'heure, 0,56 pour la régression logistique, 0,65 pour le gradient boosting avec météo, et 0,80 pour le gradient boosting du jour du vol.
 
-On évalue en AUC car l'accuracy est trompeuse quand 80 % des vols sont à l'heure. On distingue deux scénarios. À la réservation, on ne connaît que le trajet et l'horaire, le modèle atteint 0,65. Le jour du vol, on ajoute trois variables calculées sur nos propres données et connues avant le départ : le retard de l'avion précédent (effet domino, via le numéro d'appareil), la congestion et le temps d'escale, et l'état du réseau (taux de retard au départ de l'aéroport dans les deux heures précédentes). L'AUC monte à 0,80 et l'erreur en minutes descend de 20,6 à 16,0. C'est le principe des services du marché comme Google Flights ou FlightAware.
+On évalue en AUC car l'accuracy est trompeuse quand 80 % des vols sont à l'heure. On distingue deux scénarios. À la réservation, on ne connaît que le trajet et l'horaire, le modèle atteint 0,65. Le jour du vol, on ajoute trois variables calculées sur nos propres données et connues avant le départ : le retard de l'avion précédent (effet domino, via le numéro d'appareil), la congestion et le temps d'escale, et l'état du réseau (taux de retard au départ de l'aéroport dans les deux heures précédentes). L'AUC monte à 0,80 et l'erreur en minutes descend de 20,0 à 16,0. C'est le principe des services du marché comme Google Flights ou FlightAware.
 
 Une régression prédit aussi le nombre de minutes de retard, sur la médiane (le retard typique) plutôt que la moyenne gonflée par les cas extrêmes, ce qui donne une prévision lisible.
 
