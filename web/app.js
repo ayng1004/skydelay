@@ -354,8 +354,9 @@ function renderPinned() {
  if (!o) { box.innerHTML = ""; box.classList.remove("show"); return; }
  box.classList.add("show");
  const frac = Math.max(0, Math.min(1, (clockMin - o.dep) / o.dur));
- const risk = mode === "dayof" ? o.drisk : o.risk;
- const pmin = predMin(o);
+ const jour = mode === "dayof";
+ const risk = jour ? o.drisk : o.risk;
+ const pmin = jour ? o.dpdelay : o.pdelay;
  const pred = pmin < 10 ? "à l'heure" : "+" + pmin + " min";
  const reel = o.delay >= 10 ? "+" + o.delay + " min" : "à l'heure";
  box.innerHTML = `
