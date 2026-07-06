@@ -11,7 +11,7 @@ html, body { height: 100%; font-family: -apple-system, "Segoe UI", Roboto, sans-
 .sub { font-size: 12px; color: #93a1b5; margin-top: 3px; }
 .legend { margin-top: 16px; }
 .legend-title { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: #93a1b5; margin-bottom: 6px; }
-.scale { height: 10px; border-radius: 5px; background: linear-gradient(90deg, #2ecc71, #f1c40f, #e74c3c); }
+.scale { height: 10px; border-radius: 5px; background: linear-gradient(90deg, #61b284, #deba64, #de6c5f); }
 .scale-lbl { display: flex; justify-content: space-between; font-size: 10px; color: #93a1b5; margin-top: 3px; }
 .toggles { margin-top: 16px; display: flex; flex-direction: column; gap: 7px; font-size: 13px; }
 .toggles label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
@@ -181,7 +181,7 @@ input[type=range] { width: 100%; accent-color: #38d39f; }
 .cal-row { display: flex; align-items: center; gap: 12px; }
 .cal-lbl { flex: 0 0 130px; font-size: 13px; color: #93a1b5; }
 .cal-bar { flex: 1; height: 20px; background: rgba(255,255,255,.06); border-radius: 6px; overflow: hidden; }
-.cal-bar span { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, #2ecc71, #f1c40f, #e74c3c); }
+.cal-bar span { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, #61b284, #deba64, #de6c5f); }
 .cal-val { flex: 0 0 70px; text-align: right; font-size: 13px; color: #cdd6e2; font-variant-numeric: tabular-nums; }
 .chapter .src { font-size: 13px; margin-top: 8px; }
 .chapter .story-btn { margin: 12px 10px 0 0; }

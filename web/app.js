@@ -18,7 +18,7 @@ function bearing(a, b) {
  return deg(Math.atan2(Math.sin(dl) * Math.cos(p2), Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl)));
 }
 function grad(t) {
- t = clamp(t); const c = [[46, 204, 113], [241, 196, 15], [231, 76, 60]];
+ t = clamp(t); const c = [[97, 178, 132], [222, 186, 100], [222, 108, 95]];
  const mix = (a, b, f) => a.map((v, i) => Math.round(v + (b[i] - v) * f));
  return t < 0.5 ? mix(c[0], c[1], t * 2) : mix(c[1], c[2], (t - 0.5) * 2);
 }
@@ -390,7 +390,7 @@ for (const b of navItems)
 $("ch-select").innerHTML = navItems.map(b => `<option value="${b.dataset.ch}">${b.textContent}</option>`).join("");
 $("ch-select").onchange = e => navItems.find(b => b.dataset.ch === e.target.value).click();
 
-const NIV = { faible: [46, 204, 113], moyen: [241, 196, 15], fort: [231, 76, 60] };
+const NIV = { faible: [97, 178, 132], moyen: [222, 186, 100], fort: [222, 108, 95] };
 function clearPred() { predRoute = null; $("result").innerHTML = ""; }
 
 function renderList(now) {
