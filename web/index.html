@@ -59,14 +59,18 @@
 </div>
 
 <div id="side">
+ <div class="side-head">
  <h2>Prédire un vol</h2>
- <p class="hint">Choisis un vol, le modèle estime son risque d'arriver avec plus de 15 min de retard.</p>
+ <p class="hint">Le modèle estime son risque d'arriver avec plus de 15 min de retard. Pour une date dans les deux prochaines semaines, il utilise la vraie météo prévue de ce jour.</p>
+ </div>
+ <div class="side-form">
  <label>Compagnie <select id="airline"></select></label>
- <label>Aéroport de départ <select id="origin"></select></label>
- <label>Aéroport d'arrivée <select id="dest"></select></label>
- <div class="row">
- <label>Date du vol <input type="date" id="date-in" value="2024-07-19"></label>
- <label>Heure de départ <input type="time" id="time-in" value="08:00"></label>
+ <label>Départ <select id="origin"></select></label>
+ <label>Arrivée <select id="dest"></select></label>
+ </div>
+ <div class="side-form">
+ <label>Date <input type="date" id="date-in" value="2024-07-19"></label>
+ <label>Heure <input type="time" id="time-in" value="08:00"></label>
  </div>
  <label class="chk"><input type="checkbox" id="dayof-chk"> Je suis le jour du vol (j'ai des infos sur l'avion)</label>
  <label id="prev-wrap" class="hidden">Retard de l'avion précédent <output id="pval">0</output> min<input type="range" id="prev-in" min="0" max="180" value="0" step="5"></label>
