@@ -1,4 +1,4 @@
-import duckdb, pandas as pd, os, json
+import duckdb, os, json
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.ensemble import IsolationForest

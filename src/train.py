@@ -1,4 +1,4 @@
-import duckdb, pandas as pd, numpy as np, time, joblib, os, json
+import duckdb, pandas as pd, time, joblib, os, json
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, TargetEncoder
 from sklearn.pipeline import Pipeline
