@@ -126,7 +126,9 @@ input[type=range] { width: 100%; accent-color: #38d39f; }
 .story-nav::-webkit-scrollbar { display: none; }
 .peng-drop { position: fixed; top: -150px; z-index: 9000; pointer-events: none; animation: pengfall linear forwards; }
 @keyframes pengfall { to { transform: translateY(115vh) rotate(var(--spin, 360deg)); } }
-#mystere { position: fixed; bottom: 34px; right: 18px; z-index: 60; width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,.1); background: rgba(16,22,34,.82); backdrop-filter: blur(12px); color: #6b788c; font-size: 20px; font-weight: 700; cursor: pointer; transition: color .2s, transform .2s; }
+.peng-pile { position: fixed; z-index: 8000; pointer-events: none; animation: pengdrop var(--dur, 2s) cubic-bezier(.33,0,.7,.4) forwards; }
+@keyframes pengdrop { from { transform: translateY(0) rotate(0deg); } to { transform: translateY(var(--fall)) rotate(var(--spin, 360deg)); } }
+#mystere { position: fixed; bottom: 34px; right: 18px; z-index: 9500; width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,.1); background: rgba(16,22,34,.82); backdrop-filter: blur(12px); color: #6b788c; font-size: 20px; font-weight: 700; cursor: pointer; transition: color .2s, transform .2s; }
 #mystere:hover { color: #38d39f; transform: scale(1.08) rotate(8deg); }
 #mystere:active { transform: scale(.94); }
 #mystere.tease { color: #38d39f; border-color: rgba(56,211,159,.6); animation: mystpulse 1s ease-in-out infinite; }
@@ -134,7 +136,7 @@ input[type=range] { width: 100%; accent-color: #38d39f; }
   0%,100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(56,211,159,.5); }
   50% { transform: scale(1.28); box-shadow: 0 0 26px 7px rgba(56,211,159,.55); }
 }
-#mystere-tip { position: fixed; z-index: 61; bottom: 86px; right: 12px; background: linear-gradient(135deg,#38d39f,#2aa9db); color: #052018; font-size: 12px; font-weight: 700; padding: 6px 11px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,.4); opacity: 0; transform: translateY(6px) scale(.9); transition: opacity .25s, transform .25s; pointer-events: none; white-space: nowrap; }
+#mystere-tip { position: fixed; z-index: 9600; bottom: 86px; right: 12px; background: linear-gradient(135deg,#38d39f,#2aa9db); color: #052018; font-size: 12px; font-weight: 700; padding: 6px 11px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,.4); opacity: 0; transform: translateY(6px) scale(.9); transition: opacity .25s, transform .25s; pointer-events: none; white-space: nowrap; }
 #mystere-tip::after { content: ""; position: absolute; bottom: -4px; right: 20px; width: 9px; height: 9px; background: #2aa9db; transform: rotate(45deg); }
 #mystere-tip.show { opacity: 1; transform: translateY(0) scale(1); }
 .story-brand { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; }

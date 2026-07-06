@@ -346,8 +346,7 @@ document.querySelector(".story-brand").onclick = () => {
  setTimeout(() => p.remove(), 6000);
 };
 
-let pengRainOn = false;
-function pengRain() {
+function pengConfetti() {
  for (let i = 0; i < 40; i++) {
  const d = document.createElement("img");
  d.src = "penguin2.png"; d.className = "peng-drop";
@@ -362,16 +361,34 @@ function pengRain() {
  setTimeout(() => d.remove(), (dur + 0.6) * 1000);
  }
 }
-const mystBtn = $("mystere"), mystTip = $("mystere-tip");
-let mystSeen = false;
-mystBtn.onclick = () => { mystSeen = true; mystBtn.classList.remove("tease"); mystTip.classList.remove("show"); pengRain(); };
-function mystTease() {
- if (mystSeen || document.body.classList.contains("story-open")) return;
- mystBtn.classList.add("tease"); mystTip.classList.add("show");
- setTimeout(() => { mystBtn.classList.remove("tease"); mystTip.classList.remove("show"); }, 3200);
+const COLW = 46;
+let pileCols = [];
+function pileReset() { pileCols = new Array(Math.max(1, Math.floor(innerWidth / COLW))).fill(0); }
+pileReset();
+addEventListener("resize", pileReset);
+function pengPile() {
+ for (let i = 0; i < 22; i++) setTimeout(() => {
+ const col = Math.floor(Math.random() * pileCols.length);
+ const size = 38 + Math.random() * 30;
+ const x = col * COLW + (COLW - size) / 2 + (Math.random() * 10 - 5);
+ const startTop = -(size + 20);
+ const d = document.createElement("img");
+ d.src = "penguin2.png"; d.className = "peng-pile";
+ d.style.left = x + (Math.random() * 16 - 8) + "px";
+ d.style.width = size + "px";
+ d.style.top = startTop + "px";
+ const landTop = innerHeight - size - pileCols[col];
+ const rest = Math.random() * 150 - 75;
+ d.style.setProperty("--fall", (landTop - startTop) + "px");
+ d.style.setProperty("--spin", rest + "deg");
+ d.style.setProperty("--dur", 1.9 + Math.random() * 1.6 + "s");
+ document.body.appendChild(d);
+ pileCols[col] += size * 0.72;
+ }, i * 55);
 }
-setTimeout(mystTease, 600);
-setInterval(mystTease, 8000);
+const mystBtn = $("mystere"), mystTip = $("mystere-tip");
+mystBtn.classList.add("tease"); mystTip.classList.add("show");
+mystBtn.onclick = () => { mystBtn.classList.remove("tease"); mystTip.classList.remove("show"); pengPile(); };
 
 const navItems = [...document.querySelectorAll(".nav-item")];
 for (const b of navItems)
@@ -380,7 +397,7 @@ for (const b of navItems)
  document.querySelectorAll(".chapter").forEach(c => c.classList.toggle("active", c.id === "ch-" + b.dataset.ch));
  $("ch-select").value = b.dataset.ch;
  document.querySelector(".story-main").scrollTop = 0;
- if (b.dataset.ch === "sources") pengRain();
+ if (b.dataset.ch === "sources") pengConfetti();
  };
 $("ch-select").innerHTML = navItems.map(b => `<option value="${b.dataset.ch}">${b.textContent}</option>`).join("");
 $("ch-select").onchange = e => navItems.find(b => b.dataset.ch === e.target.value).click();
