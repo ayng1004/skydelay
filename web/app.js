@@ -56,6 +56,7 @@ const predMin = f => mode === "pred" ? f.pdelay : f.dpdelay;
 const flightColor = f => mode === "real" ? realColor(f.delay) : realColor(predMin(f));
 
 function onHover(info) {
+ if (window.innerWidth <= 820) return;
  if (!info.object) { tip.style.display = "none"; return; }
  const o = info.object;
  tip.innerHTML = o.iata
@@ -107,7 +108,16 @@ function showDetail(o) {
  $("detail-body").innerHTML = detailHTML(o);
  $("detail").classList.remove("hidden");
 }
-const onClick = info => { if (!info.object) return; if (info.object.iata) showDetail(info.object); else onListClick(info.object); };
+const onClick = info => {
+ if (!info.object) return;
+ if (info.object.iata) { showDetail(info.object); return; }
+ const o = info.object;
+ const uid = `${o.o}_${o.d}_${o.dep}_${o.al}`;
+ if (window.innerWidth <= 820) {
+ selected = uid; follow = true; selectFlight(o); renderList(clockMin);
+ closeSheets(); $("listpanel").classList.add("open"); $("mb-list").classList.add("active");
+ } else onListClick(o);
+};
 
 function gcPath(o, q, n = 48) {
  const a = []; let prev = null;
