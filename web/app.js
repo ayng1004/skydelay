@@ -86,6 +86,7 @@ function showDetail(o) {
  <div class="d-row"><span>Le jour du vol</span><b style="color:rgb(${realColor(o.dpdelay)})">${fmt(o.dpdelay)}, ${pct(o.drisk)}</b></div>
  <div class="d-row"><span>Avion précédent</span><b>${o.prev >= 10 ? "+" + o.prev + " min" : "à l'heure"}</b></div>
  <div class="d-row"><span>Retard réel observé</span><b style="color:rgb(${realColor(o.delay)})">${o.delay >= 10 ? "+" + o.delay + " min" : "à l'heure"}</b></div>`;
+ if (o.ox !== undefined) { const p = [o.ox, o.oy], q = [o.dx, o.dy]; predRoute = { o: o.o, d: o.d, p, q, path: gcPath(p, q), animated: false, uid: `${o.o}_${o.d}_${o.dep}_${o.al}`, dep: o.dep, dur: o.dur }; }
  }
  $("detail").classList.remove("hidden");
 }
@@ -109,8 +110,18 @@ function layers(dayMin) {
  getColor: [255, 255, 255, 60], getWidth: 12, widthUnits: "pixels", capRounded: true }));
  L.push(new deck.PathLayer({ id: "predpath", data: [predRoute], getPath: d => d.path,
  getColor: [255, 255, 255, 255], getWidth: 3, widthUnits: "pixels", capRounded: true }));
+ if (predRoute.animated === false) {
+ const dep = predRoute.dep, dur = predRoute.dur;
+ const frac = Math.max(0, Math.min(1, (dayMin - dep) / dur));
+ if (frac > 0) {
+ const n = Math.max(2, Math.round(frac * 48));
+ const done = []; for (let i = 0; i <= n; i++) done.push(gcInterp(predRoute.p, predRoute.q, frac * i / n));
+ L.push(new deck.PathLayer({ id: "predpast", data: [done], getPath: d => d, getColor: [64, 224, 255], getWidth: 3.5, widthUnits: "pixels", capRounded: true }));
+ }
+ }
  L.push(new deck.ScatterplotLayer({ id: "predpts", data: [predRoute.p, predRoute.q],
  getPosition: d => d, getRadius: 7, radiusUnits: "pixels", getFillColor: [255, 255, 255], stroked: true, getLineColor: [10, 14, 23], lineWidthUnits: "pixels", getLineWidth: 2 }));
+ if (predRoute.animated) {
  const now = performance.now() / 1000;
  const f = (now * 0.05) % 1;
  const pp = gcInterp(predRoute.p, predRoute.q, f), pp2 = gcInterp(predRoute.p, predRoute.q, Math.min(1, f + 0.01));
@@ -119,6 +130,7 @@ function layers(dayMin) {
  L.push(new deck.IconLayer({ id: "predplane", data: [{ position: pp, bearing: bearing(pp, pp2) }], billboard: true,
  iconAtlas: ICON, iconMapping: { plane: { x: 0, y: 0, width: 128, height: 128, anchorX: 64, anchorY: 64, mask: true } },
  getIcon: () => "plane", getPosition: d => d.position, getAngle: d => -d.bearing, getSize: 40, sizeUnits: "pixels", getColor: [64, 224, 255] }));
+ }
  }
  if (show.airports) L.push(new deck.ScatterplotLayer({
  id: "airports", data: airports, pickable: true, onHover, onClick, radiusUnits: "pixels", stroked: true, lineWidthUnits: "pixels",
@@ -135,12 +147,22 @@ function layers(dayMin) {
  const p2 = gcInterp([f.ox, f.oy], [f.dx, f.dy], Math.min(1, frac + 0.01));
  air.push({ ...f, position: p, bearing: bearing(p, p2), color: flightColor(f) });
  }
+ const uid = d => `${d.o}_${d.d}_${d.dep}_${d.al}`;
+ const sel = predRoute && predRoute.animated === false ? predRoute.uid : null;
+ const selPlane = sel ? air.find(d => uid(d) === sel) : null;
+ if (selPlane) {
+ const r = 16 + 3 * Math.sin(performance.now() / 220);
+ L.push(new deck.ScatterplotLayer({ id: "selring", data: [selPlane], getPosition: d => d.position,
+ getRadius: r, radiusUnits: "pixels", filled: false, stroked: true, getLineColor: [64, 224, 255], lineWidthUnits: "pixels", getLineWidth: 2.5 }));
+ }
  L.push(new deck.IconLayer({
  id: "planes", data: air, pickable: true, onHover, onClick, billboard: true,
  iconAtlas: ICON, iconMapping: { plane: { x: 0, y: 0, width: 128, height: 128, anchorX: 64, anchorY: 64, mask: true } },
  getIcon: () => "plane", getPosition: d => d.position, getAngle: d => -d.bearing,
- getSize: planeSize, sizeUnits: "pixels", getColor: d => predRoute ? [...d.color, 45] : d.color,
- updateTriggers: { getColor: [mode, !!predRoute], getSize: planeSize }
+ sizeUnits: "pixels", sizeMinPixels: 14,
+ getSize: d => sel && uid(d) === sel ? planeSize + 14 : planeSize,
+ getColor: d => sel && uid(d) !== sel ? [...d.color, 45] : d.color,
+ updateTriggers: { getColor: [mode, sel], getSize: [planeSize, sel] }
  }));
  }
  $("stat").innerHTML = `${air.length.toLocaleString()} avions en vol, ${flights.length.toLocaleString()} vols ce jour`;
@@ -148,7 +170,7 @@ function layers(dayMin) {
 }
 
 const map = new maplibregl.Map({ container: "map", style: MAP_STYLE, center: [-96, 38], zoom: 3.7 });
-const overlay = new deck.MapboxOverlay({ layers: [] });
+const overlay = new deck.MapboxOverlay({ layers: [], pickingRadius: 10 });
 map.addControl(overlay);
 
 function fill(sel, arr, def, label) { sel.innerHTML = arr.map(v => `<option value="${v}" ${v === def ? "selected" : ""}>${label(v)}</option>`).join(""); }
@@ -192,7 +214,7 @@ for (const [id, key] of [["t-planes", "planes"], ["t-airports", "airports"]])
  $(id).onchange = e => show[key] = e.target.checked;
 for (const r of document.querySelectorAll("input[name=mode]"))
  r.onchange = e => { mode = e.target.value; $("arr-row").innerHTML = ""; lastArrMin = clockMin; renderScore(clockMin); renderList(clockMin); };
-$("detail-close").onclick = () => $("detail").classList.add("hidden");
+$("detail-close").onclick = () => { $("detail").classList.add("hidden"); predRoute = null; };
 const BELL_ON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>`;
 const BELL_OFF = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.7 21a2 2 0 0 1-3.4 0"/><path d="M18.6 13A17.9 17.9 0 0 1 18 8"/><path d="M6.3 6.3A5.9 5.9 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.3-5"/><line x1="2" y1="2" x2="22" y2="22"/></svg>`;
 $("notif-toggle").onclick = () => {
@@ -335,7 +357,7 @@ $("go").onclick = async () => {
  <button id="clear-pred" class="clear-btn">Effacer le trajet</button>`;
  $("clear-pred").onclick = clearPred;
  const co = meta.coords[o], cd = meta.coords[d];
- if (co && cd) { predRoute = { o, d, p: co, q: cd, path: gcPath(co, cd) }; map.fitBounds([[Math.min(co[0], cd[0]), Math.min(co[1], cd[1])], [Math.max(co[0], cd[0]), Math.max(co[1], cd[1])]], { padding: 120, duration: 800 }); }
+ if (co && cd) { predRoute = { o, d, p: co, q: cd, path: gcPath(co, cd), animated: true }; map.fitBounds([[Math.min(co[0], cd[0]), Math.min(co[1], cd[1])], [Math.max(co[0], cd[0]), Math.max(co[1], cd[1])]], { padding: 120, duration: 800 }); }
  } catch (e) {
  res.innerHTML = `<div class="res-err">API non disponible. Lancez le backend :<br><code>uvicorn api.main:app --port 8000</code></div>`;
  }
