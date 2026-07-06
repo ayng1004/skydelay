@@ -208,7 +208,10 @@ Promise.all([
  const o = flights.find(f => `${f.o}_${f.d}_${f.dep}_${f.al}` === selected);
  if (o && clockMin >= o.dep && clockMin <= o.dep + o.dur) {
  const frac = (clockMin - o.dep) / o.dur;
- map.setCenter(gcInterp([o.ox, o.oy], [o.dx, o.dy], frac));
+ const pos = gcInterp([o.ox, o.oy], [o.dx, o.dy], frac);
+ if (window.innerWidth <= 820) {
+ const pt = map.project(pos); pt.y += 150; map.setCenter(map.unproject(pt));
+ } else map.setCenter(pos);
  } else follow = false;
  }
  overlay.setProps({ layers: layers(clockMin) });
