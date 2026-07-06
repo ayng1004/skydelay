@@ -32,7 +32,7 @@ const city = i => cities[i] ? `${cities[i]} (${i})` : i;
 
 let flights = [], airports = [], meta = {}, mode = "dayof", speed = 10;
 let show = { planes: true, airports: true };
-let predRoute = null, paused = false, clockMin = 0, planeSize = 22;
+let predRoute = null, paused = false, clockMin = 0, planeSize = 22, notifOn = true;
 let lastList = 0, listRows = [], minRisk = 0, lastArrMin = 0, lastArrTick = 0;
 const riskOf = f => mode === "pred" ? f.risk : f.drisk;
 const visible = f => riskOf(f) >= minRisk;
@@ -171,7 +171,7 @@ Promise.all([
  $("clock").textContent = hhmm(clockMin);
  overlay.setProps({ layers: layers(clockMin) });
  if (now - lastList > 1000) { lastList = now; renderList(clockMin); renderScore(clockMin); }
- if (now - lastArrTick > 3000) { lastArrTick = now; renderArrivals(clockMin); }
+ if (notifOn && now - lastArrTick > 1800) { lastArrTick = now; renderArrivals(clockMin); }
  requestAnimationFrame(frame);
  })(last);
 });
@@ -180,7 +180,7 @@ async function loadDay(date) {
  try {
  const r = await fetch("data/days/" + date + ".json");
  const j = await r.json();
- if (j.flights && j.flights.length) { flights = j.flights; clockMin = 0; lastArrMin = 0; $("arrivals").innerHTML = ""; paused = false; $("playpause").textContent = "Pause"; }
+ if (j.flights && j.flights.length) { flights = j.flights; clockMin = 0; lastArrMin = 0; $("arr-row").innerHTML = ""; paused = false; $("playpause").textContent = "Pause"; }
  } catch (e) {}
 }
 $("day-in").onchange = e => loadDay(e.target.value);
@@ -191,8 +191,14 @@ $("minrisk").oninput = e => { minRisk = +e.target.value / 100; $("rmval").textCo
 for (const [id, key] of [["t-planes", "planes"], ["t-airports", "airports"]])
  $(id).onchange = e => show[key] = e.target.checked;
 for (const r of document.querySelectorAll("input[name=mode]"))
- r.onchange = e => { mode = e.target.value; $("arrivals").innerHTML = ""; lastArrMin = clockMin; renderScore(clockMin); renderList(clockMin); };
+ r.onchange = e => { mode = e.target.value; $("arr-row").innerHTML = ""; lastArrMin = clockMin; renderScore(clockMin); renderList(clockMin); };
 $("detail-close").onclick = () => $("detail").classList.add("hidden");
+$("notif-toggle").onclick = () => {
+ notifOn = !notifOn;
+ $("notif-toggle").classList.toggle("muted", !notifOn);
+ $("arrivals").style.display = notifOn ? "" : "none";
+ if (!notifOn) $("arr-row").innerHTML = "";
+};
 $("dayof-chk").onchange = e => $("prev-wrap").classList.toggle("hidden", !e.target.checked);
 $("prev-in").oninput = e => $("pval").textContent = e.target.value;
 
@@ -288,15 +294,15 @@ function renderArrivals(now) {
  if (now < lastArrMin) lastArrMin = 0;
  const landed = flights.filter(f => f.dep + f.dur > lastArrMin && f.dep + f.dur <= now).slice(0, 2);
  lastArrMin = now;
- const box = $("arrivals");
+ const box = $("arr-row");
  for (const f of landed) {
-   const p = predMin(f), reel = f.delay >= 10 ? "+" + f.delay + " min" : "à l'heure";
-   const pred = p < 10 ? "à l'heure" : "~" + p + " min";
+   const reel = f.delay >= 10 ? "+" + f.delay + " min" : "à l'heure";
+   const risk = riskOf(f);
    const el = document.createElement("div");
    el.className = "arr-card";
    el.innerHTML = `<div class="a-t">${alName(f.al).replace(/ \(.*/, "")}, ${f.o} vers ${f.d}</div>
-     <div class="a-row"><span>prédit</span><b style="color:rgb(${realColor(p)})">${pred}</b></div>
-     <div class="a-row"><span>réel</span><b style="color:rgb(${realColor(f.delay)})">${reel}</b></div>`;
+     <div class="a-row"><span>risque prédit</span><b style="color:rgb(${riskColor(risk)})">${(risk * 100).toFixed(0)}%</b></div>
+     <div class="a-row"><span>arrivé</span><b style="color:rgb(${realColor(f.delay)})">${reel}</b></div>`;
    box.prepend(el);
  }
  while (box.children.length > 10) box.lastChild.remove();
